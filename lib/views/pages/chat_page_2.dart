@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ai_chat/models/chat_message.dart';
 import 'package:ai_chat/services/chat_services.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,7 @@ class _ChatPageState extends State<ChatPage> {
   bool _isLoading = false;
   final _audioRecorder = AudioRecorder();
   bool _isRecording = false;
+  String? _recordedFilePath;
 
   Future<void> _openCamera() async {
     final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
@@ -95,9 +98,10 @@ class _ChatPageState extends State<ChatPage> {
 
       setState(() {
         _isRecording = true;
+        _recordedFilePath = path;
       });
-
-      print("Grabando audio en: $path");
+    } else {
+      _recordedFilePath = null;
     }
   }
 
@@ -109,10 +113,15 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     if (path != null) {
-      print("Grabación detenida. Archivo guardado en: $path");
-      // Aquí podrías:
-      // - Subir el archivo de audio a tu backend
-      // - Reproducir el audio grabado
+      _recordedFilePath = path;
+
+      // Llamar al metodo que se comunica con la API de transcripcion
+      String transcription = await _chatService.transcribeAudio(
+        File(_recordedFilePath!),
+      );
+      print("Transcripción: $transcription");
+    } else {
+      _recordedFilePath = null;
     }
   }
 
